@@ -1,0 +1,71 @@
+diff -up libXau-1.0.6/AuGetBest.c.jx libXau-1.0.6/AuGetBest.c
+--- libXau-1.0.6/AuGetBest.c.jx	2009-02-16 12:59:07.000000000 -0500
++++ libXau-1.0.6/AuGetBest.c	2011-10-12 11:19:41.259897224 -0400
+@@ -168,6 +168,67 @@ XauGetBestAuthByAddr (
+ 	}
+ 	XauDisposeAuth (entry);
+     }
++    if (!best) {
++	rewind (auth_file);
++	for (;;) {
++	    entry = XauReadAuth (auth_file);
++	    if (!entry)
++		break;
++	    /*
++	     * Match when:
++	     *   either family or entry->family are FamilyWild or
++	     *    family and entry->family are the same and
++	     *     address and entry->address are the same or
++	     *     family is FamilyLocal
++	     *  and
++	     *   either number or entry->number are empty or
++	     *    number and entry->number are the same
++	     *  and
++	     *   either name or entry->name are empty or
++	     *    name and entry->name are the same
++	     */
++
++	    if ((family == FamilyWild || entry->family == FamilyWild ||
++		 (entry->family == family &&
++		 ((address_length == entry->address_length &&
++		  binaryEqual (entry->address, address, (int)address_length))
++#ifdef hpux
++		 || (family == FamilyLocal &&
++		    fully_qual_address_length == entry->address_length &&
++		    binaryEqual (entry->address, fully_qual_address,
++			(int) fully_qual_address_length))
++#endif
++		 || (family == FamilyLocal)
++		))) &&
++		(number_length == 0 || entry->number_length == 0 ||
++		 (number_length == entry->number_length &&
++		  binaryEqual (entry->number, number, (int)number_length))))
++	    {
++		if (best_type == 0)
++		{
++		    best = entry;
++		    break;
++		}
++		for (type = 0; type < best_type; type++)
++		    if (type_lengths[type] == entry->name_length &&
++			!(strncmp (types[type], entry->name, entry->name_length)))
++		    {
++			break;
++		    }
++		if (type < best_type)
++		{
++		    if (best)
++			XauDisposeAuth (best);
++		    best = entry;
++		    best_type = type;
++		    if (type == 0)
++			break;
++		    continue;
++		}
++	    }
++	    XauDisposeAuth (entry);
++	}
++    }
+     (void) fclose (auth_file);
+     return best;
+ }
