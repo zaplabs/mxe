@@ -8,7 +8,7 @@ $(PKG)_CHECKSUM := cf31a7c39f2f52e8ebd0db95640384e63451f9b014eed2bb7f5de03e8adc8
 $(PKG)_SUBDIR   := libX11-$($(PKG)_VERSION)
 $(PKG)_FILE     := $($(PKG)_SUBDIR).tar.bz2
 $(PKG)_URL      := http://xorg.freedesktop.org/releases/individual/lib/$($(PKG)_FILE)
-$(PKG)_DEPS     := xproto xextproto xtrans kbproto inputproto libxcb libxau
+$(PKG)_DEPS     := xproto xextproto xtrans kbproto inputproto xcb-proto libxcb libxau
 
 define $(PKG)_UPDATE
     $(WGET) -q -O- 'http://cgit.freedesktop.org/xorg/lib/libX11/refs/tags' | \

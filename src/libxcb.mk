@@ -8,7 +8,7 @@ $(PKG)_CHECKSUM := b720fd6c7d200e5371affdb3f049cc8f88cff9aed942ff1b824d95eedbf69
 $(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
 $(PKG)_FILE     := $(PKG)-$($(PKG)_VERSION).tar.bz2
 $(PKG)_URL      := http://xcb.freedesktop.org/dist/$(PKG)-$($(PKG)_VERSION).tar.bz2
-$(PKG)_DEPS     := libxau libpthread-stubs
+$(PKG)_DEPS     := xorg-macros libxau libpthread-stubs
 
 define $(PKG)_UPDATE
     $(WGET) -q -O- 'http://cgit.freedesktop.org/xcb/libxcb/refs/tags' | \
