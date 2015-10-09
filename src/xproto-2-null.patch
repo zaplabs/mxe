@@ -1,0 +1,28 @@
+diff --git a/Xfuncproto.h.in b/Xfuncproto.h.in
+index 5daa83e..b329bd0 100644
+--- a/Xfuncproto.h.in
++++ b/Xfuncproto.h.in
+@@ -151,7 +151,9 @@ in this Software without prior written authorization from The Open Group.
+ /* requires xproto >= 7.0.22 - since this uses either gcc or C99 variable
+    argument macros, must be only used inside #ifdef _X_NONNULL guards, as
+    many legacy X clients are compiled in C89 mode still. */
+-#if __has_attribute(nonnull) \
++#if defined(__MINGW32__)
++#define _X_NONNULL /* */
++#elif __has_attribute(nonnull) \
+     && defined(__STDC_VERSION__) && (__STDC_VERSION__ - 0 >= 199901L) /* C99 */
+ #define _X_NONNULL(...)  __attribute__((nonnull(__VA_ARGS__)))
+ #elif __has_attribute(nonnull) \
+diff --git a/Xthreads.h b/Xthreads.h
+index 355ca5f..aae91c5 100644
+--- a/Xthreads.h
++++ b/Xthreads.h
+@@ -131,7 +131,7 @@ extern void _Xthread_init(void);
+     (cv)->waiters = NULL; \
+ }
+ #    define xcondition_clear(cv) DeleteCriticalSection(&(cv)->cs)
+-extern struct _xthread_waiter *_Xthread_waiter();
++extern struct _xthread_waiter *_Xthread_waiter(void);
+ #    define xcondition_wait(cv,m) { \
+     struct _xthread_waiter *_tmpthr = _Xthread_waiter(); \
+     EnterCriticalSection(&(cv)->cs); \

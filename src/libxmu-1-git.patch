@@ -1,0 +1,218 @@
+commit 4459e6940fe3fdf26a8d5d4c71989498bc400a62
+Author: Jon TURNEY <jon.turney@dronecode.org.uk>
+Date:   Sat Sep 13 21:57:39 2014 +0100
+
+    Include <direct.h> for _getdrives() on Win32
+    
+    Signed-off-by: Jon TURNEY <jon.turney@dronecode.org.uk>
+    Reviewed-by: David Macek <david.macek.0@gmail.com>
+
+diff --git a/src/RdBitF.c b/src/RdBitF.c
+index 02159c6..240c4c8 100644
+--- a/src/RdBitF.c
++++ b/src/RdBitF.c
+@@ -56,6 +56,7 @@ in this Software without prior written authorization from The Open Group.
+ #include <X11/Xmu/Drawing.h>
+ #ifdef WIN32
+ #include <X11/Xwindows.h>
++#include <direct.h>            /* for _getdrives() */
+ #endif
+ 
+ #define MAX_SIZE 255
+
+commit 24bcdbd17913a1ca39c975113767aa2c556b69cc
+Author: Jon TURNEY <jon.turney@dronecode.org.uk>
+Date:   Sat Sep 13 21:57:17 2014 +0100
+
+    Remove pointless X_NOT_POSIX
+    
+    Both stdlib.h (only included for prototype of atoi()), and limits.h (only
+    included for PATH_MAX) are in C89, so putting this under X_NOT_POSIX seems a
+    little excessive.
+    
+    Signed-off-by: Jon TURNEY <jon.turney@dronecode.org.uk>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+diff --git a/src/StrToCurs.c b/src/StrToCurs.c
+index 7bb1da1..fc064c6 100644
+--- a/src/StrToCurs.c
++++ b/src/StrToCurs.c
+@@ -58,8 +58,8 @@ SOFTWARE.
+ #include	<X11/Xmu/CurUtil.h>
+ #include	<X11/Xmu/CharSet.h>
+ 
+-#ifndef X_NOT_POSIX
+ #include <stdlib.h>
++
+ #ifdef _POSIX_SOURCE
+ #include <limits.h>
+ #else
+@@ -67,7 +67,7 @@ SOFTWARE.
+ #include <limits.h>
+ #undef _POSIX_SOURCE
+ #endif
+-#endif /* X_NOT_POSIX */
++
+ #ifndef PATH_MAX
+ #ifdef WIN32
+ #define PATH_MAX 512
+
+commit 22d9c590901e121936f50dee97dc60c4f7defb63
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Dec 2 13:00:05 2013 -0800
+
+    ShapeEllipseOrRoundedRectangle: Check height AND width, not width twice
+    
+    Fixed to match check in ShapeOval()
+    https://bugs.freedesktop.org/show_bug.cgi?id=72245
+    
+    Fixes cppcheck warning:
+    [ShapeWidg.c:204]: (style) Same expression on both sides of '||'.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+diff --git a/src/ShapeWidg.c b/src/ShapeWidg.c
+index 32388ee..3ca7116 100644
+--- a/src/ShapeWidg.c
++++ b/src/ShapeWidg.c
+@@ -201,7 +201,7 @@ ShapeEllipseOrRoundedRectangle(Widget w, Bool ellipse, int ew, int eh)
+     GC gc;
+   unsigned long mask;
+ 
+-  if (width < 3 || width < 3)
++  if (width < 3 || height < 3)
+     return;
+   width += w->core.border_width << 1;
+   height += w->core.border_width << 1;
+
+commit e02c30fac32e4873240e507cadc416f710188feb
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Nov 17 09:41:14 2013 -0800
+
+    Remove SUNSHLIB support for SunOS 4.x shared libraries
+    
+    Never enabled in modular builds, was only enabled for SunOS 4.x in imake.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+
+diff --git a/src/Atoms.c b/src/Atoms.c
+index 6f0ca64..d80f57a 100644
+--- a/src/Atoms.c
++++ b/src/Atoms.c
+@@ -54,14 +54,8 @@ struct _AtomRec {
+     DisplayRec* head;
+ };
+ 
+-#ifdef SUNSHLIB
+-#define STATIC
+-#else
+-#define STATIC static
+-#endif
+-
+ #define DeclareAtom(atom,text) \
+-STATIC struct _AtomRec __##atom = { text, NULL }; \
++static struct _AtomRec __##atom = { text, NULL }; \
+ AtomPtr _##atom = &__##atom;
+ 
+ DeclareAtom(XA_ATOM_PAIR,		"ATOM_PAIR"		)
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 7e31853..3aa88d1 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -62,8 +62,7 @@ libXmu_la_SOURCES = \
+ 	UpdMapHint.c \
+ 	VisCmap.c \
+ 	WidgetNode.c \
+-	Xct.c \
+-	sharedlib.c
++	Xct.c
+ 
+ 
+ if LINT
+diff --git a/src/StrToCurs.c b/src/StrToCurs.c
+index 6930e82..7bb1da1 100644
+--- a/src/StrToCurs.c
++++ b/src/StrToCurs.c
+@@ -88,7 +88,7 @@ SOFTWARE.
+    and broken object file formats that don't correctly distinguish
+    references to procedures from references to data.
+  */
+-#if defined(SUNSHLIB) || defined(SVR4)
++#if defined(SVR4)
+ #define XMU_KLUDGE
+ #endif
+ 
+diff --git a/src/sharedlib.c b/src/sharedlib.c
+deleted file mode 100644
+index b47213d..0000000
+--- a/src/sharedlib.c
++++ /dev/null
+@@ -1,67 +0,0 @@
+-/*
+-
+-Copyright 1991, 1998  The Open Group
+-
+-Permission to use, copy, modify, distribute, and sell this software and its
+-documentation for any purpose is hereby granted without fee, provided that
+-the above copyright notice appear in all copies and that both that
+-copyright notice and this permission notice appear in supporting
+-documentation.
+-
+-The above copyright notice and this permission notice shall be included in
+-all copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+-OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+-AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-
+-Except as contained in this notice, the name of The Open Group shall not be
+-used in advertising or otherwise to promote the sale, use or other dealings
+-in this Software without prior written authorization from The Open Group.
+-
+-*/
+-
+-#if defined(SUNSHLIB) && !defined(SHAREDCODE)
+-
+-#ifdef HAVE_CONFIG_H
+-#include <config.h>
+-#endif
+-#include "Atoms.h"
+-
+-struct _AtomRec {
+-    char *name;
+-    struct _DisplayRec* head;
+-};
+-
+-#define DeclareAtom(atom) \
+-extern struct _AtomRec __##atom; \
+-AtomPtr _##atom = &__##atom;
+-
+-DeclareAtom(XA_ATOM_PAIR)
+-DeclareAtom(XA_CHARACTER_POSITION)
+-DeclareAtom(XA_CLASS)
+-DeclareAtom(XA_CLIENT_WINDOW)
+-DeclareAtom(XA_CLIPBOARD)
+-DeclareAtom(XA_COMPOUND_TEXT)
+-DeclareAtom(XA_DECNET_ADDRESS)
+-DeclareAtom(XA_DELETE)
+-DeclareAtom(XA_FILENAME)
+-DeclareAtom(XA_HOSTNAME)
+-DeclareAtom(XA_IP_ADDRESS)
+-DeclareAtom(XA_LENGTH)
+-DeclareAtom(XA_LIST_LENGTH)
+-DeclareAtom(XA_NAME)
+-DeclareAtom(XA_NET_ADDRESS)
+-DeclareAtom(XA_NULL)
+-DeclareAtom(XA_OWNER_OS)
+-DeclareAtom(XA_SPAN)
+-DeclareAtom(XA_TARGETS)
+-DeclareAtom(XA_TEXT)
+-DeclareAtom(XA_TIMESTAMP)
+-DeclareAtom(XA_USER)
+-DeclareAtom(XA_UTF8_STRING)
+-
+-#endif /* SUNSHLIB */

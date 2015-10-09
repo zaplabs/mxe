@@ -1,0 +1,354 @@
+commit 29234204f3eec4e2e88aa535c14da262b8057965
+Author: Jeffrey Clark <dude@zaplabs.com>
+Date:   Fri Oct 9 10:25:38 2015 -0500
+
+    hack around mingw 64bit build errors
+
+diff --git a/include/X11/Intrinsic.h b/include/X11/Intrinsic.h
+index 794b820..a999760 100644
+--- a/include/X11/Intrinsic.h
++++ b/include/X11/Intrinsic.h
+@@ -112,14 +112,14 @@ typedef struct _XtActionsRec *XtActionList;
+ typedef struct _XtEventRec *XtEventTable;
+ 
+ typedef struct _XtAppStruct *XtAppContext;
+-typedef unsigned long	XtValueMask;
+-typedef unsigned long	XtIntervalId;
+-typedef unsigned long	XtInputId;
+-typedef unsigned long	XtWorkProcId;
+-typedef unsigned long	XtSignalId;
++typedef size_t	XtValueMask;
++typedef size_t	XtIntervalId;
++typedef size_t	XtInputId;
++typedef size_t	XtWorkProcId;
++typedef size_t	XtSignalId;
+ typedef unsigned int	XtGeometryMask;
+-typedef unsigned long	XtGCMask;   /* Mask of values that are used by widget*/
+-typedef unsigned long	Pixel;	    /* Index into colormap		*/
++typedef size_t	XtGCMask;   /* Mask of values that are used by widget*/
++typedef size_t	Pixel;	    /* Index into colormap		*/
+ typedef int		XtCacheType;
+ #define			XtCacheNone	  0x001
+ #define			XtCacheAll	  0x002
+@@ -148,7 +148,7 @@ typedef int		XtCacheType;
+  *
+  ****************************************************************/
+ typedef char		Boolean;
+-typedef long		XtArgVal;
++typedef size_t		XtArgVal;
+ typedef unsigned char	XtEnum;
+ 
+ typedef unsigned int	Cardinal;
+@@ -260,7 +260,7 @@ typedef void (*XtActionHookProc)(
+     Cardinal*		/* num_params */
+ );
+ 
+-typedef unsigned long XtBlockHookId;
++typedef size_t XtBlockHookId;
+ 
+ typedef void (*XtBlockHookProc)(
+     XtPointer		/* client_data */
+@@ -287,11 +287,11 @@ typedef void (*XtEventHandler)(
+     XEvent*		/* event */,
+     Boolean*		/* continue_to_dispatch */
+ );
+-typedef unsigned long EventMask;
++typedef size_t EventMask;
+ 
+ typedef enum {XtListHead, XtListTail } XtListPosition;
+ 
+-typedef unsigned long	XtInputMask;
++typedef size_t	XtInputMask;
+ #define XtInputNoneMask		0L
+ #define XtInputReadMask		(1L<<0)
+ #define XtInputWriteMask	(1L<<1)
+diff --git a/src/Alloc.c b/src/Alloc.c
+index c9ffce8..78149e7 100644
+--- a/src/Alloc.c
++++ b/src/Alloc.c
+@@ -310,14 +310,14 @@ typedef struct _Stats {
+     char *file;
+     int line;
+     unsigned size;
+-    unsigned long seq;
++    size_t seq;
+     XtPointer heap;
+ } Stats;
+ 
+ static StatsPtr XtMemory = (StatsPtr)NULL;
+-static unsigned long ActiveXtMemory = 0;
+-static unsigned long XtSeqId = 0;
+-static unsigned long XtSeqBreakpoint = ~0;
++static size_t ActiveXtMemory = 0;
++static size_t XtSeqId = 0;
++static size_t XtSeqBreakpoint = ~0;
+ 
+ #define StatsSize(n) ((((n) + (sizeof(long) - 1)) & ~(sizeof(long) - 1)) + sizeof(Stats))
+ #define ToStats(ptr) ((StatsPtr)(ptr - sizeof(Stats)))
+diff --git a/src/Callback.c b/src/Callback.c
+index a1231ec..f04740f 100644
+--- a/src/Callback.c
++++ b/src/Callback.c
+@@ -96,7 +96,7 @@ static InternalCallbackList* FetchInternalList(
+     offsets = (CallbackTable)
+ 	widget->core.widget_class->core_class.callback_private;
+ 
+-    for (n = (int)(long) *(offsets++); --n >= 0; offsets++)
++    for (n = (uintptr_t) *(offsets++); --n >= 0; offsets++)
+ 	if (quark == (*offsets)->xrm_name) {
+ 	    retval = (InternalCallbackList *)
+ 		((char *) widget - (*offsets)->xrm_offset - 1);
+diff --git a/src/Convert.c b/src/Convert.c
+index cea8fd3..9ebbe39 100644
+--- a/src/Convert.c
++++ b/src/Convert.c
+@@ -571,7 +571,7 @@ static void ComputeArgs(
+ 
+ 	case XtBaseOffset:
+ 	    args[i].addr =
+-		(XPointer)((char *)widget + (long)convert_args[i].address_id);
++		(XPointer)((char *)widget + (uintptr_t)convert_args[i].address_id);
+ 	    break;
+ 
+ 	case XtWidgetBaseOffset:
+@@ -583,7 +583,7 @@ static void ComputeArgs(
+ 	    }
+ 
+ 	    args[i].addr =
+-		(XPointer)((char *)ancestor + (long)convert_args[i].address_id);
++		(XPointer)((char *)ancestor + (uintptr_t)convert_args[i].address_id);
+ 	    break;
+ 
+ 	case XtImmediate:
+@@ -599,14 +599,14 @@ static void ComputeArgs(
+ 	    /* Convert in place for next usage */
+ 	    convert_args[i].address_mode = XtResourceQuark;
+ 	    convert_args[i].address_id =
+-	       (XtPointer)(long)XrmStringToQuark((String)convert_args[i].address_id);
++	       (XtPointer)(uintptr_t)XrmStringToQuark((String)convert_args[i].address_id);
+ 	    /* Fall through */
+ 
+ 	case XtResourceQuark:
+ 	    if (! ResourceQuarkToOffset(widget->core.widget_class,
+-		    (XrmQuark)(long) convert_args[i].address_id, &offset)) {
++		    (XrmQuark)(uintptr_t) convert_args[i].address_id, &offset)) {
+ 		params[0]=
+-                  XrmQuarkToString((XrmQuark)(long) convert_args[i].address_id);
++                  XrmQuarkToString((XrmQuark)(uintptr_t) convert_args[i].address_id);
+                XtAppWarningMsg(XtWidgetToApplicationContext(widget),
+ 		    "invalidResourceName","computeArgs",XtCXtToolkitError,
+ 		    "Cannot find resource name %s as argument to conversion",
+@@ -640,7 +640,7 @@ void XtDirectConvert(
+ 
+     LOCK_PROCESS;
+     /* Try to find cache entry for conversion */
+-    hash = ((long) converter >> 2) + from->size + *((char *) from->addr);
++    hash = ((uintptr_t) converter >> 2) + from->size + *((char *) from->addr);
+     if (from->size > 1) hash += ((char *) from->addr)[1];
+ 
+     for (p = cacheHashTable[hash & CACHEHASHMASK]; p; p = p->next) {
+@@ -737,7 +737,7 @@ CallConverter(
+ 
+     LOCK_PROCESS;
+     /* Try to find cache entry for conversion */
+-    hash = ((long)(converter) >> 2) + from->size + *((char *) from->addr);
++    hash = ((uintptr_t)(converter) >> 2) + from->size + *((char *) from->addr);
+     if (from->size > 1) hash += ((char *) from->addr)[1];
+ 
+     if (cP->cache_type != XtCacheNone) {
+diff --git a/src/Create.c b/src/Create.c
+index da00192..e4386be 100644
+--- a/src/Create.c
++++ b/src/Create.c
+@@ -151,7 +151,7 @@ XtInitializeWidgetClass(WidgetClass wc)
+ 	Cardinal num_params;
+ 
+ 	param[0] = wc->core_class.class_name;
+-	param[1] = (String) wc->core_class.version;
++	param[1] = (String) &wc->core_class.version;
+ 	param[2] = (String) XtVersion;
+ 
+ 	if (wc->core_class.version == (11 * 1000 + 5) || /* MIT X11R5 */
+@@ -326,7 +326,7 @@ CompileCallbacks(
+     offsets = (CallbackTable)
+ 	widget->core.widget_class->core_class.callback_private;
+ 
+-    for (i = (int)(long) *(offsets++); --i >= 0; offsets++) {
++    for (i = (uintptr_t) *(offsets++); --i >= 0; offsets++) {
+ 	cl = (InternalCallbackList *)
+ 	    ((char *) widget - (*offsets)->xrm_offset - 1);
+ 	if (*cl)
+@@ -456,7 +456,7 @@ xtCreate(
+ 	    /* negated size field. */
+ 
+ 	    if (typed_args->type != NULL && typed_args->size < 0) {
+-		XtFree((char*)typed_args->value);
++		XtFree((char *)&typed_args->value);
+ 		typed_args->size = -(typed_args->size);
+ 	    }
+ 	    typed_args++;
+diff --git a/src/GetResList.c b/src/GetResList.c
+index c22725c..de59061 100644
+--- a/src/GetResList.c
++++ b/src/GetResList.c
+@@ -78,7 +78,7 @@ in this Software without prior written authorization from The Open Group.
+  * XtGetResourceList(), XtGetConstraintResourceList()
+  */
+ 
+-#define	TOXRMQUARK(p) ((XrmQuark)(long)(p))	/* avoid LP64 warnings */
++#define	TOXRMQUARK(p) ((XrmQuark)(size_t)(p))	/* avoid LP64 warnings */
+ 
+ void XtGetResourceList(
+ 	WidgetClass widget_class,
+diff --git a/src/Manage.c b/src/Manage.c
+index 575be7d..b334cba 100644
+--- a/src/Manage.c
++++ b/src/Manage.c
+@@ -381,7 +381,7 @@ void XtSetMappedWhenManaged(
+ 
+ 	call_data.type = XtHsetMappedWhenManaged;
+ 	call_data.widget = widget;
+-	call_data.event_data = (XtPointer) (unsigned long) mapped_when_managed;
++	call_data.event_data = (XtPointer) (size_t) mapped_when_managed;
+ 	XtCallCallbackList(hookobj,
+ 		((HookObject)hookobj)->hooks.changehook_callbacks,
+ 		(XtPointer)&call_data);
+diff --git a/src/Object.c b/src/Object.c
+index ae1ac75..edb314a 100644
+--- a/src/Object.c
++++ b/src/Object.c
+@@ -154,7 +154,7 @@ static void ConstructCallbackOffsets(
+ 	superTable = (CallbackTable)
+ 	    ((ObjectClass) objectClass->object_class.superclass)->
+ 		object_class.callback_private;
+-	tableSize = (int)(long) superTable[0];
++	tableSize = (size_t) superTable[0];
+     } else {
+ 	superTable = (CallbackTable) NULL;
+ 	tableSize = 0;
+@@ -174,10 +174,10 @@ static void ConstructCallbackOffsets(
+     newTable = (CallbackTable)
+ 	__XtMalloc(sizeof(XrmResource *) * (tableSize + 1));
+ 
+-    newTable[0] = (XrmResource *)(long) tableSize;
++    newTable[0] = (XrmResource *)(size_t) tableSize;
+ 
+     if (superTable)
+-	tableSize -= (int)(long) superTable[0];
++	tableSize -= (size_t) superTable[0];
+     resourceList = (XrmResourceList) objectClass->object_class.resources;
+     for (i=1; tableSize > 0; resourceList++)
+ 	if (resourceList->xrm_type == QCallback) {
+@@ -186,7 +186,7 @@ static void ConstructCallbackOffsets(
+ 	}
+ 
+     if (superTable)
+-	for (tableSize = (int)(long) *superTable++;
++	for (tableSize = (size_t) *superTable++;
+ 	    --tableSize >= 0; superTable++)
+ 	    newTable[i++] = *superTable;
+ 
+@@ -266,7 +266,7 @@ static Boolean ObjectSetValues(
+     /* Compile any callback lists into internal form */
+     offsets = (CallbackTable) XtClass(widget)->core_class.callback_private;
+ 
+-    for (i= (int)(long) *(offsets++); --i >= 0; offsets++) {
++    for (i= (uintptr_t) *(offsets++); --i >= 0; offsets++) {
+ 	ol = (InternalCallbackList *)
+ 	    ((char *) old - (*offsets)->xrm_offset - 1);
+ 	nl = (InternalCallbackList *)
+@@ -295,7 +295,7 @@ static void ObjectDestroy (
+     offsets = (CallbackTable)
+ 	widget->core.widget_class->core_class.callback_private;
+ 
+-    for (i = (int)(long) *(offsets++); --i >= 0; offsets++) {
++    for (i = (uintptr_t) *(offsets++); --i >= 0; offsets++) {
+ 	cl = *(InternalCallbackList *)
+ 	    ((char *) widget - (*offsets)->xrm_offset - 1);
+ 	if (cl) XtFree((char *) cl);
+diff --git a/src/Resources.c b/src/Resources.c
+index 9e0f065..835e52e 100644
+--- a/src/Resources.c
++++ b/src/Resources.c
+@@ -325,7 +325,7 @@ static void BadSize(
+     String params[2];
+     Cardinal num_params = 2;
+ 
+-    params[0] = (String)(long) size;
++    params[0] = (String)(size_t) size;
+     params[1] = XrmQuarkToString(name);
+     XtWarningMsg("invalidSizeOverride", "xtDependencies", XtCXtToolkitError,
+ 	"Representation size %d must match superclass's to override %s",
+@@ -784,16 +784,16 @@ static XtCacheRef *GetResources(
+ 			if (xrm_type == QString) {
+ 			    value.addr = rx->xrm_default_addr;
+ 			} else if (rx->xrm_size == sizeof(int)) {
+-			    int_val = (int)(long)rx->xrm_default_addr;
++			    int_val = (int)(size_t)rx->xrm_default_addr;
+ 			    value.addr = (XPointer) &int_val;
+ 			} else if (rx->xrm_size == sizeof(short)) {
+-			    short_val = (short)(long)rx->xrm_default_addr;
++			    short_val = (short)(size_t)rx->xrm_default_addr;
+ 			    value.addr = (XPointer) &short_val;
+ 			} else if (rx->xrm_size == sizeof(char)) {
+-			    char_val = (char)(long)rx->xrm_default_addr;
++			    char_val = (char)(size_t)rx->xrm_default_addr;
+ 			    value.addr = (XPointer) &char_val;
+ 			} else if (rx->xrm_size == sizeof(long)) {
+-			    long_val = (long)rx->xrm_default_addr;
++			    long_val = (long)(size_t)rx->xrm_default_addr;
+ 			    value.addr = (XPointer) &long_val;
+ 			} else if (rx->xrm_size == sizeof(char*)) {
+ 			    char_ptr = (char*)rx->xrm_default_addr;
+diff --git a/src/Selection.c b/src/Selection.c
+index 4f59d70..0cfb178 100644
+--- a/src/Selection.c
++++ b/src/Selection.c
+@@ -876,7 +876,7 @@ static void HandleSelectionEvents(
+ 	       }
+ 	   }
+       }
+-      (void) XSendEvent(ctx->dpy, ev.requestor, False, (unsigned long)NULL,
++      (void) XSendEvent(ctx->dpy, ev.requestor, False, (size_t)NULL,
+ 		   (XEvent *) &ev);
+ 
+       EndProtectedSection(ctx->dpy);
+diff --git a/src/TMparse.c b/src/TMparse.c
+index df94181..80d349e 100644
+--- a/src/TMparse.c
++++ b/src/TMparse.c
+@@ -905,7 +905,7 @@ static String ParseImmed(
+     register EventPtr event,
+     Boolean* error)
+ {
+-    event->event.eventCode = (unsigned long)closure;
++    event->event.eventCode = (size_t)closure;
+     event->event.eventCodeMask = ~0UL;
+ 
+     return BROKEN_OPTIMIZER_HACK(str);
+@@ -918,7 +918,7 @@ static String ParseAddModifier(
+     register EventPtr event,
+     Boolean* error)
+ {
+-    register unsigned long modval = (unsigned long)closure;
++    register unsigned long modval = (size_t)closure;
+     event->event.modifiers |= modval;
+     if (modval != AnyButtonMask) /* AnyButtonMask is don't-care mask */
+ 	event->event.modifierMask |= modval;
+@@ -934,13 +934,13 @@ static String ParseKeyAndModifiers(
+     Boolean* error)
+ {
+     str = ParseKeySym(str, closure, event,error);
+-    if ((unsigned long) closure == 0) {
++    if ((size_t) closure == 0) {
+ 	Value metaMask; /* unused */
+ 	(void) _XtLookupModifier(QMeta, &event->event.lateModifiers, FALSE,
+ 				 &metaMask, FALSE);
+     } else {
+-	event->event.modifiers |= (unsigned long) closure;
+-	event->event.modifierMask |= (unsigned long) closure;
++	event->event.modifiers |= (size_t) closure;
++	event->event.modifierMask |= (size_t) closure;
+     }
+     return str;
+ }

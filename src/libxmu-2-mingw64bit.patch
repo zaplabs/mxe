@@ -1,0 +1,67 @@
+diff --git a/src/EditresCom.c b/src/EditresCom.c
+index 716a2b3..03fe4fa 100644
+--- a/src/EditresCom.c
++++ b/src/EditresCom.c
+@@ -247,7 +247,7 @@ _XEditResCheckMessages(Widget w, XtPointer data, XEvent *event, Boolean *cont)
+ 	}
+ 
+ 	XtGetSelectionValue(w, res_comm, res_editor_command,
+-			    GetCommand, (XtPointer)(long)ident, time);
++			    GetCommand, (XtPointer)(size_t)ident, time);
+     }
+ }
+ 
+@@ -450,7 +450,7 @@ static void
+ GetCommand(Widget w, XtPointer data, Atom *selection, Atom *type,
+ 	   XtPointer value, unsigned long *length, int *format)
+ {
+-    ResIdent ident = (ResIdent)(long)data;
++    ResIdent ident = (ResIdent)(size_t)data;
+     EditresEvent *event;
+ 
+     if (*type != res_editor_protocol || *format != EDITRES_FORMAT)
+@@ -500,7 +500,7 @@ ExecuteCommand(Widget w, Atom sel, ResIdent ident, EditresEvent *event)
+     {
+     case SendWidgetTree:
+ #if defined(LONG64) || defined(WORD64)
+-	globals.base_address = (unsigned long)w & 0xFFFFFFFF00000000;
++	globals.base_address = (size_t)w & 0xFFFFFFFF00000000;
+ #endif
+ 	func = DumpWidgets;
+ 	break;
+@@ -895,7 +895,7 @@ VerifyWidget(Widget w, WidgetInfo *info)
+     Widget top;
+     register int count;
+     register Widget parent;
+-    register unsigned long *child;
++    register size_t *child;
+ 
+     for (top = w; XtParent(top) != NULL; top = XtParent(top))
+ 	;
+@@ -1621,7 +1621,7 @@ InsertWidget(ProtocolStream *stream, Widget w)
+      * make sure that they are inserted in the list from parent -> child
+      */
+     for (i--, temp = w; temp != NULL; temp = XtParent(temp), i--)
+-    widget_list[i] = (unsigned long)temp;
++    widget_list[i] = (size_t)temp;
+ 
+     _XEditResPut16(stream, num_widgets);	/* insert number of widgets */
+     for (i = 0; i < num_widgets; i++)		/* insert Widgets themselves */
+@@ -2168,7 +2168,7 @@ _XEditresGetStringValues(Widget w, Arg *warg, int numargs)
+ 	if (value == 0)
+ 	    string = "(null)";
+ 	else
+-	    string = (char *)value;
++	    string = (char *)(size_t)value;
+     }
+     else
+     {
+@@ -2197,7 +2197,7 @@ _XEditresGetStringValues(Widget w, Arg *warg, int numargs)
+ 		XmuSnprintf(buffer, sizeof(buffer), "0x%08x", (int)value);
+ 		break;
+ #ifdef LONG64
+-	    case sizeof(long):
++	    case sizeof(size_t):
+ 		XmuSnprintf(buffer, sizeof(buffer), "0x%016lx", value);
+ 		break;
+ #endif

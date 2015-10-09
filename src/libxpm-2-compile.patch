@@ -1,0 +1,15 @@
+diff --git a/src/XpmI.h b/src/XpmI.h
+index 122aea5..c125ad5 100644
+--- a/src/XpmI.h
++++ b/src/XpmI.h
+@@ -216,8 +216,8 @@ FUNC(xpmHashTableFree, void, (xpmHashTable *table));
+ FUNC(xpmHashSlot, xpmHashAtom *, (xpmHashTable *table, char *s));
+ FUNC(xpmHashIntern, int, (xpmHashTable *table, char *tag, void *data));
+ 
+-#define HashAtomData(i) ((void *)(long)i)
+-#define HashColorIndex(slot) ((unsigned long)((*slot)->data))
++#define HashAtomData(i) ((void *)(uintptr_t)i)
++#define HashColorIndex(slot) ((uintptr_t)((*slot)->data))
+ #define USE_HASHTABLE (cpp > 2 && ncolors > 4)
+ 
+ /* I/O utility */

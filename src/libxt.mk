@@ -22,5 +22,3 @@ define $(PKG)_BUILD
     cd '$(1)' && ./configure $(MXE_CONFIGURE_OPTS) --enable-malloc0returnsnull
     $(MAKE) -C '$(1)' -j '$(JOBS)' install pkgconfigdir='$$(libdir)/pkgconfig'
 endef
-
-$(PKG)_BUILD_x86_64-w64-mingw32 =

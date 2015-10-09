@@ -1,0 +1,32 @@
+From 42ca8d956276bc00bec09e410d76daf053ae35f9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B6rg=20Sonnenberger?= <joerg@NetBSD.org>
+Date: Wed, 19 Mar 2014 09:26:37 +0100
+Subject: Fix abs() usage.
+
+For long arguments, use labs().
+
+Reviewed-by: Matt Turner <mattst88@gmail.com>
+Signed-off-by: Thomas Klausner <wiz@NetBSD.org>
+
+diff --git a/src/create.c b/src/create.c
+index 98678d8..d013da9 100644
+--- a/src/create.c
++++ b/src/create.c
+@@ -347,10 +347,10 @@ SetCloseColor(
+ 
+ 	    closenesses[i].cols_index = i;
+ 	    closenesses[i].closeness =
+-		COLOR_FACTOR * (abs((long) col->red - (long) cols[i].red)
+-				+ abs((long) col->green - (long) cols[i].green)
+-				+ abs((long) col->blue - (long) cols[i].blue))
+-		+ BRIGHTNESS_FACTOR * abs(((long) col->red +
++		COLOR_FACTOR * (labs((long) col->red - (long) cols[i].red)
++				+ labs((long) col->green - (long) cols[i].green)
++				+ labs((long) col->blue - (long) cols[i].blue))
++		+ BRIGHTNESS_FACTOR * labs(((long) col->red +
+ 					   (long) col->green +
+ 					   (long) col->blue)
+ 					   - ((long) cols[i].red +
+-- 
+cgit v0.10.2
+
