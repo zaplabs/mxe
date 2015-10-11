@@ -1,0 +1,13 @@
+diff --git a/src/Vendor.c b/src/Vendor.c
+index da40e07..868906d 100644
+--- a/src/Vendor.c
++++ b/src/Vendor.c
+@@ -64,7 +64,7 @@ SOFTWARE.
+  *
+  ***************************************************************************/
+ 
+-#if defined(__CYGWIN__) || defined(__MINGW32__)
++#if (defined(__CYGWIN__) || defined(__MINGW32__)) && defined(SHAREDCODE)
+ /* to fix the EditRes problem because of wrong linker semantics */
+ extern WidgetClass vendorShellWidgetClass;
+ 

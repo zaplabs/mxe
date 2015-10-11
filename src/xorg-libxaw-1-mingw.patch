@@ -1,0 +1,18 @@
+diff --git a/xaw6.pc.in b/xaw6.pc.in
+index cee7220..76c62bf 100644
+--- a/xaw6.pc.in
++++ b/xaw6.pc.in
+@@ -10,3 +10,4 @@ Requires: xproto xt
+ Requires.private: x11 xext xt xmu
+ Cflags: -I${includedir}
+ Libs: -L${libdir} -lXaw6
++Libs.private: -lws2_32
+diff --git a/xaw7.pc.in b/xaw7.pc.in
+index 0e55ff9..8384d3b 100644
+--- a/xaw7.pc.in
++++ b/xaw7.pc.in
+@@ -10,3 +10,4 @@ Requires: xproto xt
+ Requires.private: x11 xext xt xmu xpm
+ Cflags: -I${includedir}
+ Libs: -L${libdir} -lXaw7
++Libs.private: -lws2_32

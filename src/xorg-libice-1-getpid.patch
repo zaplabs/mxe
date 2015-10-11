@@ -1,0 +1,49 @@
+Signed-off-by: Jon TURNEY <jon.turney at dronecode.org.uk>
+---
+ src/error.c   | 3 +++
+ src/iceauth.c | 4 ++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/src/error.c b/src/error.c
+index 3e5e5e9..fcb9276 100644
+--- a/src/error.c
++++ b/src/error.c
+@@ -35,6 +35,9 @@ Author: Ralph Mor, X Consortium
+ 
+ #include <errno.h>
+ 
++#ifdef _WIN32
++#include <process.h>            /* for getpid() */
++#endif
+ 
+ void
+ _IceErrorBadMinor (
+diff --git a/src/iceauth.c b/src/iceauth.c
+index ef66626..7fa083d 100644
+--- a/src/iceauth.c
++++ b/src/iceauth.c
+@@ -40,6 +40,10 @@ Author: Ralph Mor, X Consortium
+ #include <bsd/stdlib.h>	/* for arc4random_buf() */
+ #endif
+ 
++#ifdef _WIN32
++#include <process.h>
++#endif
++
+ static int was_called_state;
+ 
+ /*
+-- 
+2.3.2
+diff --git a/src/iceauth.c b/src/iceauth.c
+index ef66626..45d8592 100644
+--- a/src/iceauth.c
++++ b/src/iceauth.c
+@@ -76,7 +76,6 @@ IceGenerateMagicCookie (
+     }
+ #else
+     {
+-	long    time ();
+ 	ldata[0] = time ((long *) 0);
+ 	ldata[1] = getpid ();
+     }

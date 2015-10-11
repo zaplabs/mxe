@@ -1,14 +1,14 @@
 # This file is part of MXE.
 # See index.html for further information.
 
-PKG             := libxau
+PKG             := xorg-libxau
 $(PKG)_IGNORE   :=
 $(PKG)_VERSION  := 1.0.8
 $(PKG)_CHECKSUM := fdd477320aeb5cdd67272838722d6b7d544887dfe7de46e1e7cc0c27c2bea4f2
 $(PKG)_SUBDIR   := libXau-$($(PKG)_VERSION)
-$(PKG)_FILE     := libXau-$($(PKG)_VERSION).tar.bz2
+$(PKG)_FILE     := $($(PKG)_SUBDIR).tar.bz2
 $(PKG)_URL      := http://xorg.freedesktop.org/releases/individual/lib/libXau-$($(PKG)_VERSION).tar.bz2
-$(PKG)_DEPS     :=
+$(PKG)_DEPS     := xorg-xproto
 
 define $(PKG)_UPDATE
     $(WGET) -q -O- 'http://cgit.freedesktop.org/xorg/lib/libXau/refs/tags' | \
@@ -18,6 +18,7 @@ define $(PKG)_UPDATE
 endef
 
 define $(PKG)_BUILD
+    cd '$(1)' && autoreconf -fi -I'$(PREFIX)/$(TARGET)/share/aclocal'
     cd '$(1)' && ./configure $(MXE_CONFIGURE_OPTS)
     $(MAKE) -C '$(1)' -j '$(JOBS)' install pkgconfigdir='$$(libdir)/pkgconfig'
 endef

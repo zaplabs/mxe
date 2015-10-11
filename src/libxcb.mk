@@ -6,9 +6,9 @@ $(PKG)_IGNORE   :=
 $(PKG)_VERSION  := 1.11.1
 $(PKG)_CHECKSUM := b720fd6c7d200e5371affdb3f049cc8f88cff9aed942ff1b824d95eedbf69d30
 $(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
-$(PKG)_FILE     := $(PKG)-$($(PKG)_VERSION).tar.bz2
-$(PKG)_URL      := http://xcb.freedesktop.org/dist/$(PKG)-$($(PKG)_VERSION).tar.bz2
-$(PKG)_DEPS     := xorg-macros libxau libpthread-stubs
+$(PKG)_FILE     := $($(PKG)_SUBDIR).tar.bz2
+$(PKG)_URL      := http://xcb.freedesktop.org/dist/$($(PKG)_FILE)
+$(PKG)_DEPS     := xcb-proto xcb-pthread-stubs libxau libxdmcp
 
 define $(PKG)_UPDATE
     $(WGET) -q -O- 'http://cgit.freedesktop.org/xcb/libxcb/refs/tags' | \

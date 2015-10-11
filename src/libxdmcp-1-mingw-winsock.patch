@@ -1,0 +1,30 @@
+From b10f382e3aa2e86cd5a2bc27d6758da55f0ab1f6 Mon Sep 17 00:00:00 2001
+From: Jon TURNEY <jon.turney@dronecode.org.uk>
+Date: Sat, 13 Sep 2014 20:28:38 +0100
+Subject: Link with winsock library for socket functions on MinGW
+
+Signed-off-by: Jon TURNEY <jon.turney@dronecode.org.uk>
+Reviewed-by: David Macek <david.macek.0@gmail.com>
+
+diff --git a/configure.ac b/configure.ac
+index 608bab9..2288502 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -55,6 +55,14 @@ AC_PROG_LN_S
+ # Checks for libraries.
+ AC_SEARCH_LIBS([recvfrom],[socket])
+ 
++case $host_os in
++     *mingw*)
++        AC_CHECK_LIB([ws2_32],[main])
++        ;;
++     *)
++        ;;
++esac
++
+ # Checks for library functions.
+ AC_CHECK_LIB([bsd], [arc4random_buf])
+ AC_CHECK_FUNCS([srand48 lrand48 arc4random_buf])
+-- 
+cgit v0.10.2
+

@@ -97,10 +97,10 @@ index 70e1deb..5f8eb93 100644
  #undef FreeResource
  #undef CreateWindowA
 diff --git a/Xwinsock.h b/Xwinsock.h
-index a81dd7a..d710f8b 100644
+index a81dd7a..5463c30 100644
 --- a/Xwinsock.h
 +++ b/Xwinsock.h
-@@ -47,17 +47,29 @@ The Open Group.
+@@ -47,17 +47,30 @@ The Open Group.
  #define _NO_BOOL_TYPEDEF
  #define BOOL WINBOOL
  #define INT32 wINT32
@@ -118,6 +118,7 @@ index a81dd7a..d710f8b 100644
  #define BYTE wBYTE
  #define FreeResource wFreeResource
  #include <winsock2.h>
++#include <ws2tcpip.h>
 +#pragma pop_macro("Mask")
  #undef Status
  #define Status int

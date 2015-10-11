@@ -1,14 +1,14 @@
 # This file is part of MXE.
 # See index.html for further information.
 
-PKG             := libxext
+PKG             := xorg-libxext
 $(PKG)_IGNORE   :=
 $(PKG)_VERSION  := 1.3.3
 $(PKG)_CHECKSUM := b518d4d332231f313371fdefac59e3776f4f0823bcb23cf7c7305bfb57b16e35
 $(PKG)_SUBDIR   := libXext-$($(PKG)_VERSION)
 $(PKG)_FILE     := $($(PKG)_SUBDIR).tar.bz2
 $(PKG)_URL      := http://xorg.freedesktop.org/releases/individual/lib/$($(PKG)_FILE)
-$(PKG)_DEPS     := xproto libxau libx11 xorg-macros
+$(PKG)_DEPS     := xorg-util-macros xorg-xproto xorg-xextproto xorg-libxau xorg-libx11
 
 define $(PKG)_UPDATE
     $(WGET) -q -O- 'http://cgit.freedesktop.org/xorg/lib/libXext/refs/tags' | \

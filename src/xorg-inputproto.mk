@@ -1,18 +1,18 @@
 # This file is part of MXE.
 # See index.html for further information.
 
-PKG             := inputproto
+PKG             := xorg-inputproto
 $(PKG)_IGNORE   :=
 $(PKG)_VERSION  := 2.3.1
 $(PKG)_CHECKSUM := 5a47ee62053a6acef3a83f506312494be1461068d0b9269d818839703b95c1d1
-$(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
+$(PKG)_SUBDIR   := $(patsubst xorg-%,%,$(PKG))-$($(PKG)_VERSION)
 $(PKG)_FILE     := $($(PKG)_SUBDIR).tar.bz2
 $(PKG)_URL      := http://xorg.freedesktop.org/releases/individual/proto/$($(PKG)_FILE)
-$(PKG)_DEPS     :=
+$(PKG)_DEPS     := xorg-util-macros
 
 define $(PKG)_UPDATE
     $(WGET) -q -O- 'http://cgit.freedesktop.org/xorg/proto/inputproto/refs/tags' | \
-    $(SED) -n "s,.*<a href='[^']*/tag/?id=xproto-\\([0-9.]*\\)'.*,\\1,p" | \
+    $(SED) -n "s,.*<a href='[^']*/tag/?id=inputproto-\\([0-9.]*\\)'.*,\\1,p" | \
     $(SORT) -V | \
     tail -1
 endef

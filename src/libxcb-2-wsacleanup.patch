@@ -1,0 +1,12 @@
+--- a/src/xcb_auth.c
++++ b/src/xcb_auth.c
+@@ -308,6 +308,9 @@ static struct sockaddr *get_peer_sock_name(xcb_sock_ret_t socket_func,
+ 
+  sock_or_realloc_error:
+     free(sockname);
++#ifdef _WIN32
++    WSACleanup();
++#endif
+     return NULL;
+ }
+ 

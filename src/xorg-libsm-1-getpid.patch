@@ -1,0 +1,19 @@
+Signed-off-by: Jon TURNEY <jon.turney at dronecode.org.uk>
+---
+ src/sm_genid.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/sm_genid.c b/src/sm_genid.c
+index bcd10a6..e9ec3ff 100644
+--- a/src/sm_genid.c
++++ b/src/sm_genid.c
+@@ -54,6 +54,7 @@ in this Software without prior written authorization from The Open Group.
+ 
+ #ifdef WIN32
+ # define _WILLWINSOCK_
++#include <process.h>            /* for getpid() */
+ #endif
+ #ifdef HAVE_CONFIG_H
+ # include <config.h>
+-- 
+2.3.2

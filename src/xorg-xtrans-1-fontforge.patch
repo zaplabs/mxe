@@ -1,0 +1,129 @@
+diff --git a/Xtrans.c b/Xtrans.c
+index bfba1ad..c5383ad 100644
+--- a/Xtrans.c
++++ b/Xtrans.c
+@@ -301,7 +301,7 @@ TRANS(ParseAddress) (const char *address,
+ 	*(_host + _host_len - 1) = '\0';
+ 
+ 	/* Verify address is valid IPv6 numeric form */
+-	if (inet_pton(AF_INET6, _host + 1, &sin6) == 1) {
++	if (TRANS(inet_pton)(AF_INET6, _host + 1, &sin6) == 1) {
+ 	    /* It is. Use it as such. */
+ 	    _host++;
+ 	    _protocol = "inet6";
+@@ -701,7 +701,7 @@ TRANS(SetOption) (XtransConnInfo ciptr, int option, int arg)
+ #if defined(WIN32)
+ 	{
+ #ifdef WIN32
+-	    u_long arg;
++	    unsigned long arg;
+ #else
+ 	    int arg;
+ #endif
+diff --git a/Xtrans.h b/Xtrans.h
+index 026fbd7..22e0440 100644
+--- a/Xtrans.h
++++ b/Xtrans.h
+@@ -52,6 +52,7 @@ from The Open Group.
+ 
+ #include <X11/Xfuncproto.h>
+ #include <X11/Xos.h>
++#include <X11/Xmd.h>
+ 
+ #ifndef WIN32
+ #include <sys/socket.h>
+diff --git a/Xtranssock.c b/Xtranssock.c
+index d830e7c..072179a 100644
+--- a/Xtranssock.c
++++ b/Xtranssock.c
+@@ -249,6 +249,59 @@ static int TRANS(SocketINETClose) (XtransConnInfo ciptr);
+ # define SOCKLEN_T int
+ #endif
+ 
++#if defined(IPv6) && defined(AF_INET6)
++static char *
++TRANS(inet_ntop) (int af, const void *src, char *dst, SOCKLEN_T cnt)
++{
++        if (af == AF_INET)
++        {
++                struct sockaddr_in in;
++                memset(&in, 0, sizeof(in));
++                in.sin_family = AF_INET;
++                memcpy(&in.sin_addr, src, sizeof(struct in_addr));
++                getnameinfo((struct sockaddr *)&in, sizeof(struct
++sockaddr_in), dst, cnt, NULL, 0, NI_NUMERICHOST);
++                return dst;
++        }
++        else if (af == AF_INET6)
++        {
++                struct sockaddr_in6 in;
++                memset(&in, 0, sizeof(in));
++                in.sin6_family = AF_INET6;
++                memcpy(&in.sin6_addr, src, sizeof(struct in_addr6));
++                getnameinfo((struct sockaddr *)&in, sizeof(struct
++sockaddr_in6), dst, cnt, NULL, 0, NI_NUMERICHOST);
++                return dst;
++        }
++        return NULL;
++}
++
++static int
++TRANS(inet_pton) (int af, const char *src, void *dst)
++{
++        struct addrinfo hints, *res, *ressave;
++
++        memset(&hints, 0, sizeof(struct addrinfo));
++        hints.ai_family = af;
++
++        if (getaddrinfo(src, NULL, &hints, &res) != 0)
++        {
++                return -1;
++        }
++
++        ressave = res;
++
++        while (res)
++        {
++                memcpy(dst, res->ai_addr, res->ai_addrlen);
++                res = res->ai_next;
++        }
++
++        freeaddrinfo(ressave);
++        return 0;
++}
++#endif
++
+ /*
+  * These are some utility function used by the real interface function below.
+  */
+@@ -1545,7 +1598,7 @@ TRANS(SocketINETConnect) (XtransConnInfo ciptr,
+ 		struct sockaddr_in *sin = (struct sockaddr_in *) socketaddr;
+ 
+ 		prmsg (4,"SocketINETConnect() sockname.sin_addr = %s\n",
+-			inet_ntop(addrlist->addr->ai_family,&sin->sin_addr,
++			TRANS(inet_ntop)(addrlist->addr->ai_family,&sin->sin_addr,
+ 			ntopbuf,sizeof(ntopbuf)));
+ 
+ 		prmsg (4,"SocketINETConnect() sockname.sin_port = %d\n",
+@@ -1585,7 +1638,7 @@ TRANS(SocketINETConnect) (XtransConnInfo ciptr,
+ 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) socketaddr;
+ 
+ 		prmsg (4,"SocketINETConnect() sockname.sin6_addr = %s\n",
+-			inet_ntop(addrlist->addr->ai_family,
++			TRANS(inet_ntop)(addrlist->addr->ai_family,
+ 				  &sin6->sin6_addr,ntopbuf,sizeof(ntopbuf)));
+ 		prmsg (4,"SocketINETConnect() sockname.sin6_port = %d\n",
+ 			ntohs(sin6->sin6_port));
+diff --git a/Xtransutil.c b/Xtransutil.c
+index 63f0fc3..9396bff 100644
+--- a/Xtransutil.c
++++ b/Xtransutil.c
+@@ -391,7 +391,7 @@ TRANS(GetPeerNetworkId) (XtransConnInfo ciptr)
+ 	  addr = hostp->h_name;
+ 	else
+ #if defined(IPv6) && defined(AF_INET6)
+-	  addr = inet_ntop (family, address, addrbuf, sizeof (addrbuf));
++	  addr = TRANS(inet_ntop) (family, address, addrbuf, sizeof (addrbuf));
+ #else
+ 	  addr = inet_ntoa (saddr->sin_addr);
+ #endif

@@ -1,18 +1,18 @@
 # This file is part of MXE.
 # See index.html for further information.
 
-PKG             := libxpm
+PKG             := libxdmcp
 $(PKG)_IGNORE   :=
-$(PKG)_VERSION  := 3.5.11
-$(PKG)_CHECKSUM := c5bdafa51d1ae30086fac01ab83be8d47fe117b238d3437f8e965434090e041c
-$(PKG)_SUBDIR   := libXpm-$($(PKG)_VERSION)
+$(PKG)_VERSION  := 1.1.2
+$(PKG)_CHECKSUM := 81fe09867918fff258296e1e1e159f0dc639cb30d201c53519f25ab73af4e4e2
+$(PKG)_SUBDIR   := libXdmcp-$($(PKG)_VERSION)
 $(PKG)_FILE     := $($(PKG)_SUBDIR).tar.bz2
 $(PKG)_URL      := http://xorg.freedesktop.org/releases/individual/lib/$($(PKG)_FILE)
-$(PKG)_DEPS     := xproto libx11
+$(PKG)_DEPS     := xorg-util-macros
 
 define $(PKG)_UPDATE
-    $(WGET) -q -O- 'http://cgit.freedesktop.org/xorg/lib/libXpm/refs/tags' | \
-    $(SED) -n "s,.*<a href='[^']*/tag/?id=libXpm-\\([0-9.]*\\)'.*,\\1,p" | \
+    $(WGET) -q -O- 'http://cgit.freedesktop.org/xorg/lib/libXdmcp/refs/tags' | \
+    $(SED) -n "s,.*<a href='[^']*/tag/?id=libXdmcp-\\([0-9.]*\\)'.*,\\1,p" | \
     $(SORT) -V | \
     tail -1
 endef
