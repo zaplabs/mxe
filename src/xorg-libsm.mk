@@ -8,7 +8,7 @@ $(PKG)_CHECKSUM := 0baca8c9f5d934450a70896c4ad38d06475521255ca63b717a6510fdb6e28
 $(PKG)_SUBDIR   := libSM-$($(PKG)_VERSION)
 $(PKG)_FILE     := $($(PKG)_SUBDIR).tar.bz2
 $(PKG)_URL      := http://xorg.freedesktop.org/releases/individual/lib/$($(PKG)_FILE)
-$(PKG)_DEPS     := xorg-util-macros xorg-xproto xorg-xtrans libice libuuid-mingw
+$(PKG)_DEPS     := xorg-util-macros xorg-xproto xorg-xtrans xorg-libice libuuid-mingw
 
 define $(PKG)_UPDATE
     $(WGET) -q -O- 'http://cgit.freedesktop.org/xorg/lib/libSM/refs/tags' | \
