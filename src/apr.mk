@@ -28,6 +28,8 @@ define $(PKG)_BUILD
         ac_cv_sizeof_pid_t=4 \
         ac_cv_sizeof_size_t=4 \
         ac_cv_sizeof_ssize_t=4 \
+	apr_cv_mutex_robust_shared="no" \
+	apr_cv_mutex_recursive="yes" \
         CFLAGS=-D_WIN32_WINNT=0x0500
     $(MAKE) -C '$(1)' -j 1 install GEN_TEST_CHAR='$(1).native/tools/gen_test_char'
 
