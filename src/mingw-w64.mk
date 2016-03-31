@@ -3,16 +3,18 @@
 
 PKG             := mingw-w64
 $(PKG)_IGNORE   :=
-$(PKG)_VERSION  := 4.0.5
-$(PKG)_CHECKSUM := d4775e381202c5ecea7dbb21a1f247e4b3506509cb7d8b01bee6d83ee538e62c
-$(PKG)_SUBDIR   := $(PKG)-v$($(PKG)_VERSION)
-$(PKG)_FILE     := $(PKG)-v$($(PKG)_VERSION).tar.bz2
-$(PKG)_URL      := http://$(SOURCEFORGE_MIRROR)/project/$(PKG)/$(PKG)/$(PKG)-release/$($(PKG)_FILE)
+$(PKG)_VERSION  := 3deeda3a1db3dee8a8b6231be5b44f47d79ce1d7
+$(PKG)_CHECKSUM := e0a17e92cc4f58f0d72cfbff381c6f0ad532adeb6a552e85d4f8b58857e309ab
+$(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
+$(PKG)_FILE     := $(PKG)-$($(PKG)_VERSION).tar.gz
+$(PKG)_URL      := https://github.com/mirror/mingw-w64/archive/$($(PKG)_VERSION).tar.gz
 $(PKG)_DEPS     :=
 
-define $(PKG)_UPDATE
-    $(WGET) -q -O- 'http://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/' | \
-    $(SED) -n 's,.*mingw-w64-v\([0-9.]*\)\.tar.*,\1,p' | \
-    $(SORT) -V | \
-    tail -1
-endef
+$(PKG)_UPDATE    = $(call MXE_GET_GITHUB_SHA, mirror/mingw-w64, master)
+
+#define $(PKG)_UPDATE
+#    $(WGET) -q -O- 'http://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/' | \
+#    $(SED) -n 's,.*mingw-w64-v\([0-9.]*\)\(-rc[0-9]*\)\{0\,1\}\.tar.*,\1\2,p' | \
+#    $(SORT) -uV | \
+#    tail -1
+#endef
