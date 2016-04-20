@@ -1,0 +1,87 @@
+From ed25df5414fbe0d7872bd7abcbd69c966a18ffe3 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Wed, 27 Apr 2016 15:50:32 +0000
+Subject: [PATCH] mingw64 fix
+
+---
+ configure.ac   | 12 +++++++-----
+ include/mmx.h  | 14 +++++++-------
+ m4/keywords.m4 |  4 ++--
+ 3 files changed, 16 insertions(+), 14 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index de1cee8..8d6edb3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -18,6 +18,7 @@ dnl Checks for compiler
+ AC_PROG_CC
+ AC_PROG_GCC_TRADITIONAL
+ AM_PROG_AS
++AM_PROG_AR
+ 
+ dnl Checks for headers. We do this before the CC-specific section because
+ dnl autoconf generates tests for generic headers before the first header test.
+@@ -64,11 +65,12 @@ elif test x"$GCC" = x"yes"; then
+     i?86-* | k?-* | x86_64-* | amd64-*)
+ 	AC_DEFINE([ARCH_X86],,[x86 architecture])
+ 	case "$host" in
+-	i386-*) TRY_CFLAGS="$OPT_CFLAGS -mcpu=i386";;
+-	i486-*) TRY_CFLAGS="$OPT_CFLAGS -mcpu=i486";;
+-	i586-*) TRY_CFLAGS="$OPT_CFLAGS -mcpu=pentium";;
+-	i686-*) TRY_CFLAGS="$OPT_CFLAGS -mcpu=pentiumpro";;
+-	k6-*)   TRY_CFLAGS="$OPT_CFLAGS -mcpu=k6";;
++	i386-*) TRY_CFLAGS="$OPT_CFLAGS -mtune=i386";;
++	i486-*) TRY_CFLAGS="$OPT_CFLAGS -mtune=i486";;
++	i586-*) TRY_CFLAGS="$OPT_CFLAGS -mtune=pentium";;
++	i686-*) TRY_CFLAGS="$OPT_CFLAGS -mtune=generic";;
++	x86_64-*) TRY_CFLAGS="$OPT_CFLAGS -mtune=core2";;
++	k6-*)   TRY_CFLAGS="$OPT_CFLAGS -mtune=k6";;
+ 	esac
+ 	AC_TRY_CFLAGS([$TRY_CFLAGS $CFLAGS],[OPT_CFLAGS="$TRY_CFLAGS"]);;
+     ppc-* | powerpc-*)
+diff --git a/include/mmx.h b/include/mmx.h
+index 92d8e9a..43ad311 100644
+--- a/include/mmx.h
++++ b/include/mmx.h
+@@ -266,14 +266,14 @@ typedef	union {
+ /* SSE2 */
+ 
+ typedef	union {
+-	long long		q[2];	/* Quadword (64-bit) value */
+-	unsigned long long	uq[2];	/* Unsigned Quadword */
++	int64_t			q[2];	/* Quadword (64-bit) value */
++	uint64_t		uq[2];	/* Unsigned Quadword */
+ 	int			d[4];	/* 2 Doubleword (32-bit) values */
+-	unsigned int		ud[4];	/* 2 Unsigned Doubleword */
+-	short			w[8];	/* 4 Word (16-bit) values */
+-	unsigned short		uw[8];	/* 4 Unsigned Word */
+-	char			b[16];	/* 8 Byte (8-bit) values */
+-	unsigned char		ub[16];	/* 8 Unsigned Byte */
++	uint32_t		ud[4];	/* 2 Unsigned Doubleword */
++	int16_t			w[8];	/* 4 Word (16-bit) values */
++	uint16_t		uw[8];	/* 4 Unsigned Word */
++	int8_t			b[16];	/* 8 Byte (8-bit) values */
++	uint8_t			ub[16];	/* 8 Unsigned Byte */
+ 	float			s[4];	/* Single-precision (32-bit) value */
+ } ATTR_ALIGN(16) sse_t;	/* On an 16-byte (128-bit) boundary */
+ 
+diff --git a/m4/keywords.m4 b/m4/keywords.m4
+index b4b7e00..b55f384 100644
+--- a/m4/keywords.m4
++++ b/m4/keywords.m4
+@@ -79,10 +79,10 @@ AC_DEFUN([AC_C_ATTRIBUTE_ALIGNED],
+                 } S = {0, 0};
+                 switch (1) {
+                     case 0:
+-                    case (long)(&((struct s *)0)->b) == $ac_cv_c_attr_align_try:
++                    case (long long)(&((struct s *)0)->b) == $ac_cv_c_attr_align_try:
+                         return 0;
+                 }
+-                return (long)&S;],
++                return (long long)&S;],
+                 [ac_cv_c_attribute_aligned=$ac_cv_c_attr_align_try])
+         done])
+     if test x"$ac_cv_c_attribute_aligned" != x"0"; then
+-- 
+2.8.0
+
